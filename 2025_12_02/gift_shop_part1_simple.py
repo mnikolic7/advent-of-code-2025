@@ -1,5 +1,4 @@
 import sys
-from itertools import product # turns out I need some combinations to make this generally work well.
 
 #dec 02, 2025 - puzzle part 1 solution.
 #simplify and use brute force. 
