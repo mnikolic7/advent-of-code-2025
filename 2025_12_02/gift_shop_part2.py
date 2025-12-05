@@ -82,9 +82,9 @@ def isInvalid(int_number):
 	return False
 
 def get_invalid_IDs(start, end):
-	return [x for x in range(start, end+1) if isInvalid(x)] #this is python fun.
+	return [x for x in range(start, end+1) if isInvalid(x)] #this is python fun one line solution
 
-#solution to part 1 of puzzle from Dec 2, 2025
+#solution to part 2 of puzzle from Dec 2, 2025
 if __name__ == "__main__":
 	fname=sys.argv[1]
 
@@ -99,6 +99,7 @@ if __name__ == "__main__":
 		curr_invalidIDs = get_invalid_IDs(int(s),int(e))
 		invalid_IDs+=curr_invalidIDs
 
+	#show yourself your calculation - it helps. 
 	print('-'*50)
 	print('invalid IDs:')
 	print(invalid_IDs)
