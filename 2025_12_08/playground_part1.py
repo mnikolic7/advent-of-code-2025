@@ -3,30 +3,18 @@ import math
 import numpy as np
 import matplotlib.pylab as plt
 
-class jbox:
-	def __init__(self, ID=None):
-		self.ID=ID
-		self.connections=[]
-		self.circuit_size=1
+'''
+#ok, so I was complicating. I learned about KD-trees but I didn't fully 
+#understand how to implement them, and then I got stuck reading/chasing 
+#my own tail. 
 
-	def connect(self, other: "jbox"):
-		if other is self:
-			return
+Today (12/28/25) I spoke with moln-r who told me - just do a simple 
+linked list, which will be best. Simple, somewhat inefficient solution 
+will get me there. Better to solve it, than to dabble in things I can 
+learn later...that's the exercise now. Actually, forget linked lists.
+I will just do my own thinking.
+''' 
 
-		if other not in self.connections:
-			self.connections.append(other)
-			other.connections.append(self)
-
-		total_size=self.circuit_size+other.circuit_size
-		self._propagate_circuit_size(total_size)
-		other._propagate_circuit_size(total_size)
-
-	def _propagate_circuit_size(self, size):
-		if self.circuit_size == size:
-			return
-		self.circuit_size= size 
-		for jb in self.connections:
-			jb._propagate_circuit_size(size)
 
 #solution to part1 of day 8, 2025
 if __name__=="__main__":
@@ -42,78 +30,119 @@ if __name__=="__main__":
 		x,y,z=line.split(',')
 		P[:,i]=[int(x),int(y),int(z)]
 
-
-	N_connections=1000
-	#solution 1: almost brute force. N^2 to calculate D, and then NlogN to search for smallest N
+	_,N_points=P.shape
+	N_connections=10
+	#solution 1: somewhat brute force. N^2 to calculate D, and then 
+	#NlogN to search for smallest distances.
 	
 	#ok, so if v=[x,y,z] is the vector of positions
 	#then |v2-v1|^2 = |v2|^2 + |v1|^2 - 2* (v1 dot v2)
-	#I can do that efficiently in numpy if I order all the vectors in a matrix
+	#I can do that efficiently in numpy if I order all the vectors in a 
+	#matrix
 	# P = [v1,v2,v3...] and M is a vector =[|v1|^2, |v2|^2, ...]
 	
 	#note: I imagine vectors to be vertical - so one vector is a column. 
-	#I am aware that columns are the second axis in python, and it's maybe slightly less efficient than thinking in Transpose, but I can't.
+	#I am aware that columns are the second axis in python, and it's 
+	#maybe slightly less efficient than thinking in Transpose, but I 
+	#can't.
 
 	#then M+M^T will have entries M_ij=[|vi|^2 + |vj|^2] 
 	#P*P^T = will have entries: [vi*vj]
 	
 	M=np.sum(P**2,axis=0)
 	D=M[np.newaxis,:]+M[:,np.newaxis]-2*P.T@P
-	D=np.sqrt(D)
+	# D=np.sqrt(D) #not really needed.
 	# print(D)
 
 	#find indices of M smallest D's
 
 	[iu, ju]=np.triu_indices_from(D,k=1)
 
-	distances=D[iu,ju]
+	distances=D[iu,ju] #this is ravelled already. 
+	#(ravelled==unravelled, english is funny)
+
+	#numpy.partition(arr, n) takes the n_th smallest item in arr, and 
+	#returns an array such that all smaller items are before it and 
+	#and larger are after it. neither left nor right side are sorted.
+	#it's cheap sorting. 
+	#np.argpartition returns the indices of this rearrangement. 
 	idx=np.argpartition(distances, N_connections)[:N_connections]
-	# idx=idx[np.argsort(distances[idx])]
+	# [:N_connections] means we only need the left side.
+	idx=idx[np.argsort(distances[idx])] #sort indices in idx
+	for i in idx:
+		print(iu[i],ju[i])
 
+	print('---')
+	#let me solve this in my own style. no linked list. 
+	#just lists of IDs. I will have to "walk the dog anyway"
 
-	_,K=P.shape
-	# JBoxes=[]
-	# for j in range(K):
-	# 	JBoxes.append(jbox(ID=j)) 
-
-	# max_sizes=np.ones(3)
-	# for i in idx:
-	# 	JBoxes[iu[i]].connect(JBoxes[ju[i]])
-	# 	new_size=JBoxes[iu[i]].circuit_size
-
-	# 	if new_size>min(max_sizes):
-	# 		print(f'new size {new_size}')
-	# 		max_sizes[np.argmin(max_sizes)]=new_size
-
-	# print(max_sizes)
-	# print(np.prod(max_sizes))
-	# print('-'*20)
-
-
-
-	##
-	fig=plt.figure()
-	ax=fig.add_subplot(projection='3d')
-
-	
-	k=np.random.randint(0,K,K//2)
+	circuit_ID=np.arange(N_points) #which circuit does the nth point belong to?
+	circuit_sizes=np.ones(N_points)#what is the size of each circuit. 
 
 
 	for i in idx:
-		x1=P[0,iu[i]]
-		x2=P[0,ju[i]]
-		y1=P[1,iu[i]]
-		y2=P[1,ju[i]]
-		z1=P[2,iu[i]]
-		z2=P[2,ju[i]]
-		ax.plot([x1,x2],[y1,y2],[z1,z2],'g-',linewidth=3)
-	# plt.matshow(D)
-	# ax.grid(False)
-	ax.plot(P[0,:],P[1,:],P[2,:],'ko',markersize=3,markerfacecolor='red')
-	ax.plot(P[0,k],P[1,k],P[2,k],'ko',markersize=3,markerfacecolor='gold')
-	plt.show()
+		id1=iu[i]
+		id2=ju[i]
+		print(f'connecting points #{id1} and #{id2}')
+		# print(f'with coordinates {P[:,id2]}')
+		# print(f' and coordinates {P[:,id1]}')
+		print(f'with IDs #{circuit_ID[id1]} and #{circuit_ID[id2]}')
+		print(f'and sizes #{circuit_sizes[id1]} and #{circuit_sizes[id2]}')
 
+		#if id1 and id2 are in the same circuit do nothing
+		if circuit_ID[id1]==circuit_ID[id2]:
+			print(f'circuit ID is {circuit_ID[id1]}')
+			print(f'with size {circuit_sizes[id1]}')
+			print(f'with size {circuit_sizes[id2]} - just checking id2')
+			print(circuit_ID)
+			print(circuit_sizes)
+			print('---')
 
+			continue
+		
+		#else, add id2 to id1's circuit. 
+		
+		#first, check which one is smaller and add smaller to the larger. 
+		if circuit_sizes[id2]>circuit_sizes[id1]:
+			id2,id1=id1,id2 #python idiom. python evaluates rhs first!
+			#instead of:
+			# id_temp=id2
+			# id2=id1
+			# id1=id_temp
 
-	#solution 2 would include kd-trees which I will just leave for the second part.
-	# it might be easiest to just use sklearn or scipy, but when/if I have time, I maybe write my own implementation, which would be pedagogical.
+		id2_list=np.where(circuit_ID==circuit_ID[id2])
+		id1_list=np.where(circuit_ID==circuit_ID[id1])
+		print(f'id1_list={id1_list}')
+		print(f'id2_list={id2_list}')
+		curr_size=circuit_sizes[id2]+circuit_sizes[id1]
+		print(f'curr_size={curr_size}')
+		circuit_sizes[id2_list]=curr_size
+		circuit_sizes[id1_list]=curr_size
+		circuit_ID[id2_list]=circuit_ID[id1]
+		#circuit_ID[id1_list]=circuit_ID[id1] #redundant, left for clarity
+
+		print(f'circuit ID is {circuit_ID[id1]}')
+		print(f'with size {circuit_sizes[id1]}')
+		print(circuit_ID)
+		print(circuit_sizes)
+		print('---')
+
+	_,indices=np.unique(circuit_ID,return_index=True)
+	print(circuit_ID)
+	print(circuit_sizes)
+	print('-unique-')
+	print(circuit_ID[indices])
+	print(circuit_sizes[indices])
+	print('-sorted-')
+
+	order = np.argsort(circuit_ID[indices])
+
+	sorted_ids   = circuit_ID[indices][order]
+	sorted_sizes = circuit_sizes[indices][order]
+	
+	print(sorted_ids)
+	print(sorted_sizes)
+	
+	print('final result:')
+	print(np.partition(circuit_sizes[indices],-3)[-3:])
+	print(np.prod(np.partition(circuit_sizes[indices],-3)[-3:]))
