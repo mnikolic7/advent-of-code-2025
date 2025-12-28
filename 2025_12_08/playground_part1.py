@@ -31,7 +31,7 @@ if __name__=="__main__":
 		P[:,i]=[int(x),int(y),int(z)]
 
 	_,N_points=P.shape
-	N_connections=10
+	N_connections=1000
 	#solution 1: somewhat brute force. N^2 to calculate D, and then 
 	#NlogN to search for smallest distances.
 	
@@ -83,21 +83,9 @@ if __name__=="__main__":
 	for i in idx:
 		id1=iu[i]
 		id2=ju[i]
-		print(f'connecting points #{id1} and #{id2}')
-		# print(f'with coordinates {P[:,id2]}')
-		# print(f' and coordinates {P[:,id1]}')
-		print(f'with IDs #{circuit_ID[id1]} and #{circuit_ID[id2]}')
-		print(f'and sizes #{circuit_sizes[id1]} and #{circuit_sizes[id2]}')
-
+		
 		#if id1 and id2 are in the same circuit do nothing
 		if circuit_ID[id1]==circuit_ID[id2]:
-			print(f'circuit ID is {circuit_ID[id1]}')
-			print(f'with size {circuit_sizes[id1]}')
-			print(f'with size {circuit_sizes[id2]} - just checking id2')
-			print(circuit_ID)
-			print(circuit_sizes)
-			print('---')
-
 			continue
 		
 		#else, add id2 to id1's circuit. 
@@ -112,37 +100,15 @@ if __name__=="__main__":
 
 		id2_list=np.where(circuit_ID==circuit_ID[id2])
 		id1_list=np.where(circuit_ID==circuit_ID[id1])
-		print(f'id1_list={id1_list}')
-		print(f'id2_list={id2_list}')
+
 		curr_size=circuit_sizes[id2]+circuit_sizes[id1]
-		print(f'curr_size={curr_size}')
+
 		circuit_sizes[id2_list]=curr_size
 		circuit_sizes[id1_list]=curr_size
 		circuit_ID[id2_list]=circuit_ID[id1]
 		#circuit_ID[id1_list]=circuit_ID[id1] #redundant, left for clarity
 
-		print(f'circuit ID is {circuit_ID[id1]}')
-		print(f'with size {circuit_sizes[id1]}')
-		print(circuit_ID)
-		print(circuit_sizes)
-		print('---')
-
 	_,indices=np.unique(circuit_ID,return_index=True)
-	print(circuit_ID)
-	print(circuit_sizes)
-	print('-unique-')
-	print(circuit_ID[indices])
-	print(circuit_sizes[indices])
-	print('-sorted-')
-
-	order = np.argsort(circuit_ID[indices])
-
-	sorted_ids   = circuit_ID[indices][order]
-	sorted_sizes = circuit_sizes[indices][order]
-	
-	print(sorted_ids)
-	print(sorted_sizes)
-	
 	print('final result:')
 	print(np.partition(circuit_sizes[indices],-3)[-3:])
 	print(np.prod(np.partition(circuit_sizes[indices],-3)[-3:]))
