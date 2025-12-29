@@ -4,8 +4,9 @@ import numpy as np
 import matplotlib.pylab as plt
 
 '''
-ok so my way was good. I implemented something that chatGPT calls
-DSU (disjoint set union). That's great. My solution was nice, but needs
+ok so my way was good. From scratch I implemented something that 
+after some googling I realized was DSU (disjoint set union). 
+That's great. My solution was nice, but needs
 a few improvements which I will implement here.
 # DSU has two operations: merge and find_root
 DSU keeps track of the parent and if there is no parent, then the 
