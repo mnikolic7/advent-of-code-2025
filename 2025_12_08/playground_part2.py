@@ -124,9 +124,7 @@ if __name__=="__main__":
 		# print(f'sizes maskd:', circuit_sizes*np.array(get_root_idx()))
 		# print(final_root)
 		if circuit_sizes[final_root]==N_points:
-			final_id1=id1
-			final_id2=id2
 			print('DONE!')
 			break
 	#this should work
-	print(P[0,final_id1]*P[0,final_id2])
+	print(P[0,id1]*P[0,id2])
