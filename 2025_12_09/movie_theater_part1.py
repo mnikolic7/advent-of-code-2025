@@ -32,8 +32,6 @@ if __name__=="__main__":
             point1=(x_list[i],y_list[i])
             point2=(x_list[j],y_list[j])
             area=getArea(point1,point2)
-            print(area)
-            print('-----')
             if area > final_area:
                 final_area=area
     print(f'max area={final_area}')
