@@ -37,7 +37,7 @@ def merge(id1,id2):
 	r2=find_root(id2)
 
 	if r1==r2: #already connected
-		return 
+		return r1
 
 	s1=circuit_sizes[r1]
 	s2=circuit_sizes[r2]
@@ -47,6 +47,8 @@ def merge(id1,id2):
 	
 	circuit_ID[r2]=r1 #point r2 to r1
 	circuit_sizes[r1]=s1+s2 #only roots have valid sizes.
+	#optionally return the root of the merged circuits.
+	return r1
 
 def get_root_idx():
 	return [circuit_ID[i]==i for i in range(len(circuit_ID))]
@@ -69,7 +71,6 @@ if __name__=="__main__":
 		P[:,i]=[int(x),int(y),int(z)]
 
 	_,N_points=P.shape
-	N_connections=1000
 	#solution 1: somewhat brute force. N^2 to calculate D, and then 
 	#NlogN to search for smallest distances.
 	
@@ -97,34 +98,34 @@ if __name__=="__main__":
 	[iu, ju]=np.triu_indices_from(D,k=1)
 
 	distances=D[iu,ju] #this is ravelled already. 
-	#(ravelled==unravelled, english is funny)
 
-	#numpy.partition(arr, n) takes the n_th smallest item in arr, and 
-	#returns an array such that all smaller items are before it and 
-	#and larger are after it. neither left nor right side are sorted.
-	#it's cheap sorting. 
-	#np.argpartition returns the indices of this rearrangement. 
-	idx=np.argpartition(distances, N_connections)[:N_connections]
-	# [:N_connections] means we only need the left side.
-	idx=idx[np.argsort(distances[idx])] #sort indices in idx
-	#let me solve this in my own style. no linked list. 
-	#just lists of IDs. I will have to "walk the dog anyway"
-
-	#keep arrays for the DSU implementation.
 	circuit_ID=np.arange(N_points) #which circuit does the nth point belong to?
-	circuit_sizes=np.ones(N_points) #what is the size of each circuit. 
+	circuit_sizes=np.ones(N_points)#what is the size of each circuit. 
+	#part 2:
+	idx=np.argsort(distances)
 
-	#now this is super simple. :) 
 	for i in idx:
 		id1=iu[i]
-		id2=ju[i]	
-		#find all indices with roots at circuit ID
-		root1=find_root(id1)
-		root2=find_root(id2)
-		#merge
-		merge(root1,root2)
+		id2=ju[i]
 
-	valid_sizes=get_root_sizes()
-	print('final result:')
-	print(np.partition(valid_sizes,-3)[-3:])
-	print(np.prod(np.partition(valid_sizes,-3)[-3:]))
+		r1=find_root(id1)
+		r2=find_root(id2)
+		# print(f'merging    : {id1} and {id2}')
+		# print(f'with roots : {r1} and {r2}')
+		# print(f'circ_ID:   :', circuit_ID)
+		# print(f'sizes      :', circuit_sizes)
+		# print(f'sizes maskd:', circuit_sizes*np.array(get_root_idx()))
+
+		final_root=merge(r1,r2)
+		# print(f'after merging')
+		# print(f'circ_ID:   :', circuit_ID)
+		# print(f'sizes      :', circuit_sizes)
+		# print(f'sizes maskd:', circuit_sizes*np.array(get_root_idx()))
+		# print(final_root)
+		if circuit_sizes[final_root]==N_points:
+			final_id1=id1
+			final_id2=id2
+			print('DONE!')
+			break
+	#this should work
+	print(P[0,final_id1]*P[0,final_id2])
