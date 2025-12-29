@@ -7,7 +7,7 @@ Advent of code: https://adventofcode.com/
 
 [![From day7, part 2](tachyon_tannenbaum.png)](https://adventofcode.com/)
 
-<small>From day 7, part 2</small>
+<span style="font-size: 8px;">The image of the Tachyon Tannenbaum is from day 7, part 2.</span>
 
 You can view my progress on my [private leaderboard](https://adventofcode.com/2025/leaderboard/private/view/5171740?view_key=eb170cdf). 
 
