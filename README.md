@@ -6,6 +6,7 @@ I made the repo mostly to keep track of my own solutions, feel free to have a lo
 Advent of code: https://adventofcode.com/
 
 [![From day7, part 2](tachyon_tannenbaum.png)](https://adventofcode.com/)
+<small>From day 7, part 2</small>
 
 You can view my progress on my [private leaderboard](https://adventofcode.com/2025/leaderboard/private/view/5171740?view_key=eb170cdf). 
 
