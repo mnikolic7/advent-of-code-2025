@@ -90,7 +90,7 @@ def rectangle_is_valid(point1,point2,X=None,Y=None):
     return isValid
 
 #line is a 2-tuple of two 2-tuples (points) with  ( (x1,y1),(x2,y2) )
-def lines_intersect(line_rect, line_tiles):
+def lines_intersect(line_tiles, line_rect): #I simply switched tiles and rect...
     s1,e1=line_rect
     s2,e2=line_tiles
     result = False #innocent until proven guilty
@@ -207,6 +207,22 @@ def get_sides(point1,point2):
 
     return bottom,right,top,left
 
+
+def get_corners(point1,point2):
+    x1,y1=point1
+    x2,y2=point2
+    #bottom left 
+    #I am thinking here with y axis going up, not downwards like in the problem statement.
+    x_BL,y_BL=(min(x1,x2),min(y1,y2))
+    #bottom right
+    x_BR,y_BR=(max(x1,x2),min(y1,y2))
+    #top right
+    x_TR, y_TR=(max(x1,x2),max(y1,y2))
+    #top left
+    x_TL, y_TL=(min(x1,x2),max(y1,y2))
+
+    return x_BL, y_BL, x_BR, y_BR, x_TR, y_TR, x_TL, y_TL
+
 if __name__=="__main__":
     fname=sys.argv[1]
 
@@ -232,10 +248,16 @@ if __name__=="__main__":
     data0,=ax.plot(X+0.5,Y+0.5,'r.-',linewidth=0.5)
     pt1,=ax.plot([],[],'bo')
     pt2,=ax.plot([],[],'bs')
+
+    pb=ax.plot([],[],'k-')
+    pr=ax.plot([],[],'k-')
+    pt=ax.plot([],[],'k-')
+    pl=ax.plot([],[],'k-')
+
     ax.set_xlim(0,max(X)+2)
     ax.set_ylim(0,max(Y)+2)
-    # ax.set_xticks(np.arange(0,max(X)+2))
-    # ax.set_yticks(np.arange(0,max(Y)+2))
+    ax.set_xticks(np.arange(0,max(X)+2))
+    ax.set_yticks(np.arange(0,max(Y)+2))
     plt.grid(True)
 
     rect=get_rect((X[0],Y[0]),(X[1],Y[1]))
@@ -249,6 +271,7 @@ if __name__=="__main__":
         for j in range(i+1,N):
             point1=(X[i],Y[i])
             point2=(X[j],Y[j])
+            #for debugging
             pt1.set_data([X[i]+0.5],[Y[i]+0.5])
             pt2.set_data([X[j]+0.5],[Y[j]+0.5])
             print(f'points are {point1} and {point2}')
@@ -256,12 +279,25 @@ if __name__=="__main__":
             print(f'rect is {rect}')
             print(f'with sides {get_sides(point1,point2)}')
             R.set(xy=rect[0],width=rect[1],height=rect[2],color='gray',alpha=0.5)
-            #for debugging
+
             validity=rectangle_is_valid(point1,point2,X=X,Y=Y)
+            #for debugging
             if validity:
                 R.set(color='green',alpha=0.5)
             else:
                 R.set(color='red',alpha=0.5)
+            
+            x_BL, y_BL, x_BR, y_BR, x_TR, y_TR, x_TL, y_TL=get_corners(point1,point2)
+            b,r,t,l=get_sides(point1,point2)
+
+            # pb.set_data([x_BL,x_BR],[y_BL,y_BR])
+            # pr.set_data([x_BL,x_BR],[y_BL,y_BR])
+            # pt.set_data([x_BL,x_BR],[y_BL,y_BR])
+            # pl.set_data([x_BL,x_BR],[y_BL,y_BR])
+
+            
+
+
             all_areas[i,j]=get_area(point1,point2)
             print(f'latest area between points {i} and {j}')
             print(f'with coords {point1} and {point2}')
@@ -276,7 +312,7 @@ if __name__=="__main__":
                     # all_areas[i,j]=0
             # plt.pause(0.001)#this is as fast as it goes
             plt.pause(0.05)
-            # fig.waitforbuttonpress()
+            fig.waitforbuttonpress()
     print('done with the loop')
 
     print('-'*30)
