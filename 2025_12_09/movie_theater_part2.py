@@ -1,7 +1,14 @@
 import sys
-import matplotlib.pylab as plt
-from matplotlib.patches import Rectangle
 import numpy as np
+
+#I have given up on writing my own "contains" function
+#it took me too long, and I should do it another time
+#it's a good exercise, but I need to practice finishing 
+#problems now, instead of solving from scratch.
+from shapely.geometry import box, Polygon
+from shapely.prepared import prep
+from shapely import within
+
 
 #calculate the rectangle area, leftover from part 1
 def get_area(point1, point2):
@@ -34,32 +41,28 @@ if __name__=="__main__":
 
     x_starts=np.zeros(np.max(Y)-1)
     x_ends=np.zeros_like(x_starts)
-    for i in range()
+    
+    points=[]
+    for i in range(N):
+        points.append((X[i],Y[i]))
+
+    red_tiles=Polygon(points)
 
 
+    all_areas=np.zeros((N,N))
     final_area=0
     for i in range(N):
         for j in range(i+1,N):
-            point1=(X[i],Y[i])
-            point2=(X[j],Y[j])
+            x1,y1 = X[i], Y[i] 
+            x2,y2 = X[j], Y[j]
 
-            area=get_area(point1,point2)
+            area=get_area((x1,y1),(x2,y2))
+            all_areas[i,j]=area
 
-            rectangle_bad=False
-            for k in range(N):
-                b_point1=(X[k],Y[k])
-                if k==N-1:
-                    b_point2=(X[0],Y[0])
-                else:
-                    b_point2=(X[k+1],Y[k+1])
-
-                boundary=(b_point1,b_point2)
-                if boundary_cuts(boundary, point1, point2):
-                    rectangle_bad=True
-                    break
-            if rectangle_bad:
-                break
-            else:
+            rect=box(min(x1,x2),min(y1,y2),max(x1,x2)+1,max(y1,y2)+1)
+            rect=prep(rect)
+            
+            if within(rect,red_tiles):
                 if area>final_area:
                     final_area=area
 
