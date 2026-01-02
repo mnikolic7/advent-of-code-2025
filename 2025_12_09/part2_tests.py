@@ -89,12 +89,22 @@ if __name__=="__main__":
     # plt.show() # Keep the final plot window ope
 
 
-    plt.figure()
-    plt.plot(X,Y,'r-')
-    plt.show()
+    # plt.figure()
+    # plt.plot(X,Y,'r-')
+    # plt.show()
 
 
-    plt.figure()
-    plt.plot(all_angles)
+    # plt.figure()
+    # plt.plot(all_angles)
+    # plt.show()
+    #
+
+    # x2=np.diff(Y)
+    # plt.plot(x2[1::2]==0,'.-')
+    # plt.grid(True)
+    # plt.show() 
+
+    l=np.diff(Y)+np.diff(X)
+    # l.sort()
+    plt.plot(abs(l)<=6,'o-')
     plt.show()
-    
