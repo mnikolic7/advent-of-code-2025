@@ -38,15 +38,15 @@ if __name__=="__main__":
     N=len(X)
     X=np.array(X,dtype='float64') #master lists of point coordinates.
     Y=np.array(Y,dtype='float64')
-
-    x_starts=np.zeros(np.max(Y)-1)
-    x_ends=np.zeros_like(x_starts)
     
     points=[]
     for i in range(N):
         points.append((X[i],Y[i]))
 
     red_tiles=Polygon(points)
+    # print(red_tiles)
+    # red_tiles=prep(red_tiles)
+    # print(red_tiles)
 
 
     all_areas=np.zeros((N,N))
@@ -59,10 +59,9 @@ if __name__=="__main__":
             area=get_area((x1,y1),(x2,y2))
             all_areas[i,j]=area
 
-            rect=box(min(x1,x2),min(y1,y2),max(x1,x2)+1,max(y1,y2)+1)
-            rect=prep(rect)
+            rect=box(min(x1,x2),min(y1,y2),max(x1,x2),max(y1,y2))
             
-            if within(rect,red_tiles):
+            if rect.within(red_tiles):
                 if area>final_area:
                     final_area=area
 
