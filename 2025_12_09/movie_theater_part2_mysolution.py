@@ -1,14 +1,6 @@
 import sys
+import matplotlib.pylab as plt
 import numpy as np
-
-#I have given up on writing my own "contains" function
-#it took me too long, and I should do it another time
-#it's a good exercise, but I need to practice finishing 
-#problems now, instead of solving from scratch.
-from shapely.geometry import box, Polygon
-from shapely.prepared import prep
-from shapely import within
-
 '''
 Here is a general plan for the future implementation of "contains"
 1-Define a rectangle as bottom, right, top, left (4 integers).
@@ -63,13 +55,112 @@ Here is a general plan for the future implementation of "contains"
                     or V value is the same
                     or  if V value is not the same for both points:
                             make sure H value of either point is not hor_inside
+                This cutting across has edge cases that are not included here
+                but for this problem where lines are horizontal or vertical it's all good.
+
+
+I am missing a part here - where I should keep track of inside vs outside. 
+at least one point of the rectangle should be inside the curve.
 
 '''
+class Point:
+    def __init__(self,x=None,y=None,H=None, V=None):
+        self.x=x #coordinate
+        self.y=y #coordinate
+        self.H=H #relative position to another object.
+        self.V=V #relative position to another object.
+        # H: -1 = west, 0 = inside, 1= east
+        # V:-1 = below, 0= inside, 1=above
+
+def sign(x):
+    return int(x>0)-int(x<0)    
+
+# def get_side(p,rect):
+#     bottom,right,top,left=rect
+#     p.H=sign(sign(p.x-left)+sign(p.x))
+#     p.V=sign(sign(p.y-bottom)+sign(p.y-top))
+
+#     side=''
+#     if p.V==1:
+#         side+='N'
+#     if p.V==-1:
+#         side+='S'
+#     if p.H==1:
+#         side+='E'
+#     if p.H==-1:
+#         side+='W'
+#     return side
+
+#without the boundary. if the boundaries touch - it will return false. 
+def contains(b, rect):
+    bottom,right,top,left=rect
+
+    # S=False
+    # SE=False
+    # NE=False
+    # N=False
+    # NW=False
+    # W=False
+    # SW=False
+
+
+    for i in range(len(b)+1):
+        curr_p=b[i%len(b)]
+        next_p=b[(i+1)%(len(b))]
+
+        curr_p.H=sign(sign(curr_p.x-left)+sign(curr_p.x))
+        curr_p.V=sign(sign(curr_p.y-bottom)+sign(curr_p.y-top))
+        next_p.H=sign(sign(next_p.x-left)+sign(next_p.x))
+        next_p.V=sign(sign(next_p.y-bottom)+sign(next_p.y-top))
+
+        b_contains_rect=True #innocent until proven guilty.
+
+        #check that boundary is on all sides of the rectangle.
+
+
+        #check if points are inside
+        if curr_p.H==0 and curr_p.V==0:
+            b_contains_rect=False
+        if next_p.H==0 and next_p.V==0:
+            b_contains_rect=False
+
+        if curr_p.H != next_p.H:
+            if curr_p.V == 0 or next_p.V==0:
+                b_contains_rect=False
+        if curr_p.V != next_p.V:
+            if curr_p.H == 0 or next_p.V==0:
+                b_contains_rect=False
+
+        if b_contains_rect==False:
+            break
+
+    # if not (got_south and got_east and got_north and got_west):
+        # b_contains_rect=False
+
+    return b_contains_rect
+
+#get rekd, yo!
+def get_rect(point1, point2,shrink=False):
+    x1,y1=point1.x, point1.y
+    x2,y2=point2.x, point2.y
+    
+    bottom=min(y1,y2)
+    top=max(y1,y2)+1
+    left=min(x1,x2)
+    right=max(x1,x2)+1
+
+    if shrink:
+        bottom+=1
+        top-=1
+        left+=1
+        right-=1
+
+    return bottom, right, top, left
 
 #calculate the rectangle area, leftover from part 1
 def get_area(point1, point2):
-    x1,y1=point1
-    x2,y2=point2
+    x1,y1=point1.x, point1.y
+    x2,y2=point2.x, point2.y
     #bottom left
     x_BL,y_BL=(min(x1,x2),min(y1,y2))
     #top right
@@ -92,37 +183,38 @@ if __name__=="__main__":
             Y.append(y)
 
     N=len(X)
-    X=np.array(X,dtype='float64') #master lists of point coordinates.
-    Y=np.array(Y,dtype='float64')
     
-    points=[]
+    boundary=[]
     for i in range(N):
-        points.append((X[i],Y[i]))
+        p=Point(x=X[i],y=Y[i])
+        boundary.append(p)
+    for i in range(N):
+        print(boundary[i].x, boundary[i].y)
 
-    red_tiles=Polygon(points)
-    # print(red_tiles)
-    # red_tiles=prep(red_tiles)
-    # print(red_tiles)
 
 
     all_areas=np.zeros((N,N))
     final_area=0
     for i in range(N):
         for j in range(i+1,N):
-            x1,y1 = X[i], Y[i] 
-            x2,y2 = X[j], Y[j]
+            p1=boundary[i]
+            p2=boundary[j]
 
-            area=get_area((x1,y1),(x2,y2))
-            all_areas[i,j]=area
-
-            rect=box(min(x1,x2),min(y1,y2),max(x1,x2),max(y1,y2))
+            area=get_area(p1,p2)
             
-            if rect.within(red_tiles):
+            rect=get_rect(p1,p2,shrink=True)
+            
+            if contains(boundary, rect):
+                all_areas[i,j]=area
+                print(f'valid rect at points: {p1.x},{p1.y} and {p2.x},{p2.y}')
                 if area>final_area:
                     final_area=area
+                    print(f'largest area so far at points = {p1.x},{p1.y} and {p2.x},{p2.y}')
 
     print('-'*30)
     print(final_area)
     print('-'*30)
-    
-                    
+    plt.plot(X,Y,'r.-')
+    plt.show()
+    plt.matshow(all_areas)
+    plt.show()
