@@ -1,16 +1,19 @@
 import sys
+import numpy as np
 
 #implement dijkstra's algorithm.
 #on switchboards with states that are nodes 
 #which are actually binary numbers
 #
 #The 'edges' are the connections provided by the wiring diagram.
+#I read the wikipedia page on this which was helpful.
 
 class Node:
-	def __init__(self, n=None, d=float('inf'), N=None):
+	def __init__(self, n=None, d=float('inf'), N=None,prev=None):
 		self.n=n #id number (binary number of length N)
 		self.d=d #distance from start.
 		self.N=N #length of the binary number (number of indicator lights)
+		self.prev=prev #keep track of the previous node...for returning the path
 
 	def get_neighbors(self, C=None):
 		if C==None:
@@ -27,11 +30,9 @@ class Node:
 
 	#define equals method check if the id of two instances of Node
 	# is the same, and we will use this to keep only one instance.
-	#and just to be safe, check that N is the same, but that
-	#should be common for everything...
-	#I will avoid implementing __eq__ for now
+	#I will avoid implementing __eq__ for now.
 	def equals(self, other: "Node"):
-		if self.n==other.n and self.N==other.N:
+		if self.n==other.n:
 			return True
 		else:
 			return False
@@ -51,6 +52,104 @@ def get_connections(C: list[int],N=None):
 		curr_val=int(curr_val,2)
 		result.append(curr_val)
 	return result
+
+def get_neighbor_idx_in_graph(node, graph=None, C=None):
+		if C==None:
+			C=[]
+
+		if graph==None:
+			graph=[]
+
+		neighbors=[]
+		for keypress in C: #C buttons should have the same length as current instance of the node.
+			#don't mix them up...
+			neighbor_n=node.n^keypress #press the key = xor
+			neighbors.append(neighbor_n)
+
+		indices=[]
+		for neighbor in neighbors: 
+			for i in range(len(graph)):
+				if neighbor==graph[i].n:
+					indices.append(i)
+		return indices
+
+def print_graph(graph: list["Node"]):
+	print(f'Graph of length {len(graph)} printing:')
+	for node in graph:
+		print(f'Graph has node {node.n}, bin: {node} with distance {node.d}')
+	return None
+
+def dijkstra(indicator_lights, button_list):
+	lights=indicator_lights
+	#create a graph: no need to make anything for all nodes.
+	#all nodes are binary numbers of length N.
+	# we only care about the current nodes and neighbors...
+	# so we will keep track of only initialized ones.
+
+	#by observing the input there are at most 10 switches at once.
+	#so...at most 1024 possible states. So it is possible to simply initialize the entire graph.
+	#so I will make the whole graph
+	#and this will help me avoid being stuck in the infinite loop.
+	N=len(lights)
+	#starting node is 0000, it's distance is zero.
+	#all other nodes distance is inf.
+	start=Node(n=0,d=0,N=N)
+	#but initialize only one, and then as we go we will initialize as we need.
+	finish=Node(int(lights,2),d=INF,N=N)
+	#C is the list of button connections (which are conveniently also binary numbers)
+	C=get_connections(button_list,N=N)
+
+	#take the start node.
+	#find neighbors.
+	#for each neighbor, check if it is in the list of visited.
+	#if yes, update its distance to min(its distance, distance from current node)
+	#if not, just add to the list of visited.
+	#stop when you reach the final node.
+
+	#breadth first search - think about this...
+	#first step
+
+	dist=[INF]*(2**N)
+	graph=[start]
+	visited=[]
+	for i in range(1,2**N):
+		graph.append(Node(n=i,d=INF,N=N))
+		# print(graph[i])
+
+	print(f'target is {finish}, in decimal: {finish.n}')
+	while graph: #while graph is not empty
+		if all([x.d==INF for x in graph]):
+			#if all remaining nodes are inaccessible...
+			break
+
+		d=[x.d for x in graph]
+		i=np.argmin(d)
+
+		curr_node=graph.pop(i)
+		visited.append(curr_node)
+		# print_graph(graph)
+		# print('visited:')
+		# print_graph(visited)
+		if finish.equals(curr_node):
+			print('-'*30)
+			print(f'dist to target = {curr_node.d}')
+			dist_to_target=curr_node.d
+			print('-'*30)
+			break
+
+		indices=get_neighbor_idx_in_graph(curr_node, graph=graph, C=C)
+
+		for idx in indices:
+			alt_dist=curr_node.d+1
+			if alt_dist<graph[idx].d:
+				graph[idx].d=alt_dist
+				graph[idx].prev=curr_node
+		# print('graph at the end of loop')
+		# print_graph(graph)
+
+	return dist_to_target
+
+
 
 if __name__=="__main__":
 	fname=sys.argv[1]
@@ -89,69 +188,20 @@ if __name__=="__main__":
 	# print(BUTTONS[0])
 	###
 
-	IDX=0
-	lights=LIGHTS[IDX]
-	button_list=BUTTONS[0]
+	# IDX=2
+	# lights=LIGHTS[IDX]
+	# button_list=BUTTONS[IDX]
+
 
 	INF=float('inf')
+	total_distance=0
+	for idx in range(len(LIGHTS)):
+		d=dijkstra(LIGHTS[idx],BUTTONS[idx])
+		total_distance+=d
 
-	#create a graph: no need to make anything for all nodes.
-	#all nodes are binary numbers of length N.
-	# we only care about the current nodes and neighbors...
-	# so we will keep track of only initialized ones.
-	N=len(lights)
-	#starting node is 0000, it's distance is zero.
-	#all other nodes distance is inf.
-	start=Node(n=0,d=0,N=N)
-	#but initialize only one, and then as we go we will initialize as we need.
-	finish=Node(int(lights,2),d=INF,N=N)
-	#C is the list of button connections (which are conveniently also binary numbers)
-	C=get_connections(button_list,N=N)
-
-	#take the start node.
-	#find neighbors.
-	#for each neighbor, check if it is in the list of visited.
-	#if yes, update its distance to min(its distance, distance from current node)
-	#if not, just add to the list of visited.
-	#stop when you reach the final node.
-
-	#breadth first search - think about this...
-	#first step
+	print('-'*20)
+	print(f'final result is {total_distance}')
+	print('-'*20)
+	
 
 
-	# visited=[start]
-	# found = False
-	# while not found:
-	# 	#go through visited nodes and use them as a start
-	# 	# for current_start in visited:
-
-	# 	#this is a bit weird since len of visited might increase
-	# 	#inside the loop, but keep going until you find.
-	# 	#there is probably a better way to write this through recursion.
-	# 	i=0
-	# 	while i < len(visited): 
-	# 		current_start=visited[i]
-	# 		print(f'curr start = {current_start.n} bin: {current_start}')
-	# 		if current_start.equals(finish):
-	# 			found=True
-	# 			print('-'*30)
-	# 			print(f'min_number_of_steps={current_start.d}')
-	# 			print('-'*30)
-	# 			break
-	# 		neighbors=current_start.get_neighbors(C=C)
-	# 		#for each neighbor of the current start,
-	# 		#check if it has been visited.
-	# 		for neigh in neighbors:
-	# 			print(f'curr_neigh={neigh.n} bin:{neigh}')
-	# 			for v in visited:
-	# 				# print(f'neigh={neigh.n} bin: neigh')
-	# 				print(f'v={v.n} bin: {v}')
-	# 				if neigh.equals(v):
-	# 					print(f'cur_dist={neigh.d}, and visited_dist={v.d}')
-	# 					v.d=min(v.d,neigh.d)
-	# 					print(f'new dist of v is {v.d}')
-	# 				else:
-	# 					print(f'{neigh.n} bin: {neigh} not visited before')
-	# 					print(f'added {neigh} to visited')
-	# 					visited.append(neigh)
-	# 		i+=1
