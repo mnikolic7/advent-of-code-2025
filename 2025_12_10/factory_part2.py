@@ -1,6 +1,12 @@
 import sys
 import numpy as np
 
+
+#for part 2 dijkstra's algorithm should still work.
+#except that now we have a much larger graph since nodes
+#are combinations of joltages up to the maximum values. 
+#so...let me first investigate the result.
+
 #implement dijkstra's algorithm.
 #on switchboards with states that are nodes 
 #which are actually binary numbers
@@ -81,33 +87,11 @@ def print_graph(graph: list["Node"]):
 
 def dijkstra(indicator_lights, button_list):
 	lights=indicator_lights
-	#create a graph: no need to make anything for all nodes.
-	#all nodes are binary numbers of length N.
-	# we only care about the current nodes and neighbors...
-	# so we will keep track of only initialized ones.
-
-	#by observing the input there are at most 10 switches at once.
-	#so...at most 1024 possible states. So it is possible to simply initialize the entire graph.
-	#so I will make the whole graph
-	#and this will help me avoid being stuck in the infinite loop.
 	N=len(lights)
-	#starting node is 0000, it's distance is zero.
-	#all other nodes distance is inf.
 	start=Node(n=0,d=0,N=N)
-	#but initialize only one, and then as we go we will initialize as we need.
 	finish=Node(int(lights,2),d=INF,N=N)
 	#C is the list of button connections (which are conveniently also binary numbers)
 	C=get_connections(button_list,N=N)
-
-	#take the start node.
-	#find neighbors.
-	#for each neighbor, check if it is in the list of visited.
-	#if yes, update its distance to min(its distance, distance from current node)
-	#if not, just add to the list of visited.
-	#stop when you reach the final node.
-
-	#breadth first search - think about this...
-	#first step
 
 	dist=[INF]*(2**N)
 	graph=[start]
@@ -125,7 +109,7 @@ def dijkstra(indicator_lights, button_list):
 		d=[x.d for x in graph]
 		# i=np.argmin(d)
 		i = min(range(len(d)), key=d.__getitem__)
-		
+
 		curr_node=graph.pop(i)
 		visited.append(curr_node)
 		# print_graph(graph)
@@ -184,25 +168,90 @@ if __name__=="__main__":
 				butts.append(butt)
 			BUTTONS.append(butts)
 
+
+
+	INF=float('inf')
+
 	# print(LIGHTS)
 	# print(JOLTAGES)
 	# print(BUTTONS[0])
 	###
 
-	# IDX=2
-	# lights=LIGHTS[IDX]
+	# IDX=0
+	# joltages=JOLTAGES[IDX]
 	# button_list=BUTTONS[IDX]
 
+	#investigate input
+	# num_nodes=[]
+	# for joltages in JOLTAGES:
+	# 	y=[float(a) for a in joltages]
+	# 	x=np.prod(y)
+	# 	print(f'j: {joltages} : p: {x}')
 
-	INF=float('inf')
-	total_distance=0
-	for idx in range(len(LIGHTS)):
-		d=dijkstra(LIGHTS[idx],BUTTONS[idx])
-		total_distance+=d
+	# 	num_nodes.append(x)
 
-	print('-'*20)
-	print(f'final result is {total_distance}')
-	print('-'*20)
+	# print(num_nodes)
+	# print(f'max = {max(num_nodes)}')
+	# print(f'length = {len(num_nodes)}')
+
+	#it is impossible (and inefficient) to initialize 
+	#all nodes up to all the joltages. for some cases,
+	#there are 10^21 combinations...
+
+	#but maybe we can simplify the problem. 
+	#think about the path from finish to start...
+	#and count all the button presses in reverse 
+	#take the longest button and (un)press it as many times as you can
+	#until one of the numbers is zero (but not all probably)
+	#then take the next longest ...
+	#obviously you want to press the longest as many times since by pressing
+	#the longest button you increase the joltages most quickly.
+	#at the end of this process you won't have all zeros, but you will
+	#have a new target that may be possible to dijkstra to with the existing code.
+	# let's check.
+
+
+
+	IDX=0
+	joltages=JOLTAGES[IDX]
+	button_list=BUTTONS[IDX]
+
+	print(f'initial j: {joltages}')
+	while button_list:
+		button_lengths=[len(x) for x in button_list]
+		i=max(range(len(button_lengths)), key=button_lengths.__getitem__)
+		button=button_list.pop(i)
+
+		min_joltage=INF
+		for i,b in enumerate(button):
+			j=joltages[b]
+			if j<min_joltage:
+				min_joltage=j
+		npresses=min_joltage
+		for b in button:
+			joltages[b]-=min_joltage
+		print(f'pressed button {button} n={npresses} times.')
+		print(f'j: {joltages}')
+
+	# that doesn't work...obviously. it leaves us the unsolvable
+	# reminder. that's the whole point of graphs. 
+
+	#but after checking the subreddit - I avoided spoilers, 
+	#people spoke about linear algebra and using something to solve for it
+	#let me see if I can design my own solution based on it.
+	#this is in the end just a linear equation
+
+	for button_list, joltages in zip(BUTTONS, JOLTAGES):
+		print(len(button_list), len(joltages))
+		
+	# total_distance=0
+	# for idx in range(len(LIGHTS)):
+	# 	d=dijkstra(LIGHTS[idx],BUTTONS[idx])
+	# 	total_distance+=d
+
+	# print('-'*20)
+	# print(f'final result is {total_distance}')
+	# print('-'*20)
 	
 
 
