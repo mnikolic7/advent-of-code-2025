@@ -3,6 +3,8 @@ import numpy as np
 import sympy as sp
 
 #linear algebra practice. 
+#I should just practice SVD here to solve the equation.
+#let me start with libraries, as that is more practical.
 
 if __name__=="__main__":
 	fname=sys.argv[1]
@@ -38,101 +40,42 @@ if __name__=="__main__":
 
 	INF=float('inf')
 
-	IDX=2
-	joltages=JOLTAGES[IDX]
-	button_list=BUTTONS[IDX]
+	#inspect data: there are overdetermined and underdetermined 
+	#equations
+	# for IDX in range(len(JOLTAGES)):
+	# 	print(f'Joltage length: {len(JOLTAGES[IDX])}')
+	# 	print(f'buttons length: {len(BUTTONS[IDX])}')
+	# 	print('-----')
+	
+	#inspect data more. 
+	#everything is so singular as heck.
+	# IDX=0
+	# n_nonsingular=0
+	# for IDX in range(len(JOLTAGES)):
+	# 	joltages=JOLTAGES[IDX]
+	# 	button_list=BUTTONS[IDX]
 
-	M=len(button_list)
-	N=len(joltages)
+	# 	M=len(joltages)
+	# 	N=len(button_list)
 
-	X=np.zeros((N,M))
-	y=np.zeros((N,1))
-	for i in range(M):
-		button=button_list[i]
-		for b in button:
-			X[b,i]+=1
+	# 	X=np.zeros((M,N)) #m by n matrix such that
+	# 	y=np.zeros((M,1))
+	# 	#the equation is :
+	# 	# X*b=y, where dim(X)=m x n, b=n x 1 and y=m x 1
+	# 	for i in range(N):
+	# 		button=button_list[i]
+	# 		for b in button:
+	# 			X[b,i]+=1
 
-	for i,j in enumerate(joltages):
-		y[i]=j
+	# 	for i,j in enumerate(joltages):
+	# 		y[i]=j
 
-	print(button_list)
-	print(X)
-	print(y)
-	# A=sp.Matrix(A)
-	# # R=A.rref()	
-	# b, residuals, rank, s = np.linalg.lstsq(X, y, rcond=None)
-	# print(b)
-	# print(residuals)
-	# print(rank)
-	# print(s)
-	# print(R)
-
-	#this darn stupid approach works.
-	#it's just linear fitting with regularization
-	#it gets things wrong all the time, but the sum
-	#of the b is approximately the same. 
-	#I am curious how close I can get with this.
-	#I got too high
-	# That's not the right answer; your answer is too high.
-	from sklearn.linear_model import Lasso
-	lam=0.005
-	model = Lasso(
-    	alpha=lam,
-    	positive=True,
-    	fit_intercept=False,
-    	max_iter=40000
-	)
-
-	model.fit(X, y)
-	w = model.coef_
-
-	totals=[]
-	for idx in range(len(JOLTAGES)):
-		joltages=JOLTAGES[idx]
-		button_list=BUTTONS[idx]
-
-		M=len(button_list)
-		N=len(joltages)
-
-		X=np.zeros((N,M))
-		y=np.zeros((N,1))
-		for i in range(M):
-			button=button_list[i]
-			for b in button:
-				X[b,i]+=1
-
-		for i,j in enumerate(joltages):
-			y[i]=j
-
-		model.fit(X, y)
-		w=model.coef_
-		totals.append(np.sum(np.round(w)))
-
-	total=np.sum(totals)
-	print('-'*30)
-	print(total)
-
-	# import numpy as np
-	# from scipy.optimize import minimize
-
-	# def objective(w, X, y, lam):
-	#     return np.sum((X @ w - y)**2) + lam * np.sum(w**2)
-
-	# N = X.shape[1]
-	# w0 = np.zeros(N)
-	# lam=0.01
-	# bounds = [(0, None)] * N  # w >= 0
-
-	# res = minimize(
-	#     objective,
-	#     w0,
-	#     args=(X, y, lam),
-	#     bounds=bounds,
-	#     method='L-BFGS-B'
-	# )
-
-	# w = res.x
-	# print(w)
-	# print(np.round(w))
-	# print(np.sum(np.round(w)))
-	# print(np.sum(w))
+	# 	det_inner=np.linalg.det(X.T@X)
+	# 	det_outer=np.linalg.det(X@X.T)
+	# 	if np.abs(det_inner) > 0.01 and np.abs(det_outer) > 0.01:
+	# 		n_nonsingular+=1
+	# 		print('nondegenerate below:')
+	# 	print(f'det inner={det_inner:5.1f} and outer={det_outer:5.1f}')
+	# 	# print(X)
+	# 	# print(y)
+	# print(n_nonsingular)
